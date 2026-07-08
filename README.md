@@ -33,7 +33,7 @@ advanced features that the script includes, for example variable substitution.
 
 Lines without a prefix are concatenated with the base prompt.
                 
-Lines with a # prefix are concatenated with lines above them with a "," to
+Lines with a # prefix are concatenated with lines above them with a ", " to
 separate them. Multiple # prefixes define nesting.
 
 Each line is referred to as a "node" in tree created by the # prefixes. A node
