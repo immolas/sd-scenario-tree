@@ -35,6 +35,12 @@ additions, such as being able to save previously entered prompt lists, retaining
 the base prompt/negative prompt, to copy the saved prompts into the base boxes,
 and to remember the last-generated scenario in case I forgot to save it.
 
+The retained scenarios, etc. are located in the `webui` root, in the  following
+files:
+- `scenarios.json`
+- `_last_scenario.json`
+- `_last_scenario.txt`
+
 ### Basic Usage
 
 Lines without a prefix are concatenated with the base prompt.
@@ -64,12 +70,13 @@ Will produce the following three images:
 
 #### Forcing Non-Leaf Nodes to Render
 
-By default only the leaves are rendered as images.
-To make every line render an image, enable the "Every line generates an image" checkbox.
-To force specific nodes to render an image, even if they're not leaf nodes, prefix the prompt text with a !.
+By default only the leaves are rendered as images. To make every line render an
+image, enable the "Every line generates an image" checkbox. To force specific
+nodes to render an image, even if they're not leaf nodes, prefix the prompt text
+with a !.
 
-For example, say we want "looking out the window" to also render; we'd modify the
-above example like so:
+For example, say we want "looking out the window" to also render; we'd modify
+the above example like so:
 ```
 sitting on a chair
 # ! looking out the window
@@ -79,25 +86,41 @@ sitting on a chair
 ```
 
 And get the following four images:
-- a woman in a red dress, sitting on a chair, looking out the window *(this is the forced image)*
-- a woman in a red dress, sitting on a chair, looking out the window, moon in window
-- a woman in a red dress, sitting on a chair, looking out the window, sun in window
+- a woman in a red dress, sitting on a chair, looking out the window *(this is
+  the forced image)*
+- a woman in a red dress, sitting on a chair, looking out the window, moon in
+  window
+- a woman in a red dress, sitting on a chair, looking out the window, sun in
+  window
 - a woman in a red dress, sitting on a chair, reading a book
+
+### Indentation Hotkeys
+
+Pressing `Tab` within the prompt box will insert a # at the beginning of the
+line.
+
+`Shift-Tab` will remove a # from the beginning of the line.
+
+This allows you to quickly indent and unindent lines to alter the tree
+structure.
+
+If lines are selected they'll be targeted for indentation; if not, only the line
+which contains the cursor will be targeted.
 
 ### Variables
 
-Lines that contain `{var_name: text}` will set the variable `var_name` to 'text' and
-will insert it into the prompt at that position. Future references to `{var_name}`
-will insert the value of that variable at that position. Using `{var_name=text}`
-will set the variable but not insert it into the prompt at that position. These
-variables and assignments are available in all child nodes of the node where
-they are defined.
+Lines that contain `{var_name: text}` will set the variable `var_name` to 'text'
+and will insert it into the prompt at that position. Future references to
+`{var_name}` will insert the value of that variable at that position. Using
+`{var_name=text}` will set the variable but not insert it into the prompt at
+that position. These variables and assignments are available in all child nodes
+of the node where they are defined.
 
 This is useful for, e.g., removing references to a character's hair color if you
 want to render just their body, e.g. "1girl, `{hair:short hair}`, standing,
 posing." could be overridden in a child node as "{hair=} closeup of torso" to
-remove the reference to their hair and thus avoid forcing the model to include their
-head.
+remove the reference to their hair and thus avoid forcing the model to include
+their head.
 
 ### Broadcasting
 
@@ -130,7 +153,8 @@ A subset of other flags:
 - `--restore_faces <true/false>`: enables the face restoring GAN if true,
   disables it if false
 
-The full set of flags is the same as the built-in "Prompts from File or Textbox" script.
+The full set of flags is the same as the built-in "Prompts from File or Textbox"
+script.
 
 For reference, here's the flag-parsing block from the code:
 ```python
