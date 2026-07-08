@@ -28,6 +28,12 @@ The script includes a dependency on
 parsing-expression grammar for parsing the lines as a tree, as well as for more
 advanced features that the script includes, for example variable substitution.
 
+While it started out as an easier way for me to construct prompts for a sequence
+of images, it has grown to include more advanced features, such as variable
+substitution and broadcasting. It also has a few personal quality-of-life
+additions, such as being able to save previously entered prompt lists, retaining
+the base prompt/negative prompt, to copy the saved prompts into the base boxes,
+and to remember the last-generated scenario in case I forgot to save it.
 
 ### Basic Usage
 
