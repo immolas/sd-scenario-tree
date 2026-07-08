@@ -39,7 +39,6 @@ The retained scenarios, etc. are located in the `webui` root, in the  following
 files:
 - `scenarios.json`
 - `_last_scenario.json`
-- `_last_scenario.txt`
 
 ### Basic Usage
 
