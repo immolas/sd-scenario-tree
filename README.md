@@ -40,7 +40,7 @@ files:
 - `scenarios.json`
 - `_last_scenario.json`
 
-### Basic Usage
+# Basic Usage
 
 Lines without a prefix are concatenated with the base prompt.
                 
@@ -67,7 +67,7 @@ Will produce the following three images:
 - a woman in a red dress, sitting on a chair, reading a book
 
 
-#### Forcing Non-Leaf Nodes to Render
+### Forcing Non-Leaf Nodes to Render
 
 By default only the leaves are rendered as images. To make every line render an
 image, enable the "Every line generates an image" checkbox. To force specific
@@ -93,7 +93,7 @@ And get the following four images:
   window
 - a woman in a red dress, sitting on a chair, reading a book
 
-### Indentation Hotkeys
+## Indentation Hotkeys
 
 Pressing `Tab` within the prompt box will insert a # at the beginning of the
 line.
@@ -106,7 +106,7 @@ structure.
 If lines are selected they'll be targeted for indentation; if not, only the line
 which contains the cursor will be targeted.
 
-### Variables
+## Variables
 
 Lines that contain `{var_name: text}` will set the variable `var_name` to 'text'
 and will insert it into the prompt at that position. Future references to
@@ -121,7 +121,7 @@ posing." could be overridden in a child node as "{hair=} closeup of torso" to
 remove the reference to their hair and thus avoid forcing the model to include
 their head.
 
-### Broadcasting
+## Broadcasting
 
 A line with a pipe (|) in it will be split on the pipe into separate parts.
 Each part will be treated as a separate node, and the tree of children of that
@@ -138,7 +138,7 @@ Will produce the following two images:
 - a woman in a red dress, sitting on a chair, looking out the brown window
 - a woman in a red dress, standing on a chair, looking out the blue window
 
-### More Controls, Flags
+## More Controls, Flags
 
 Other prefixes:
 - ! will force the node to render even if it's a non-leaf node
@@ -185,3 +185,49 @@ prompt_tags = {
     "do_not_save_grid": process_boolean_tag
 }
 ```
+
+# Usage Ideas
+
+## Basic Scenario Generation
+
+Generally, I put everything about the character in the base prompt, then use
+the tree to describe specific scenes with that character. For example, if I wanted to generate a sequence of images of a
+character named "Alice" in different scenarios, I might set the base prompt to:
+
+```
+1girl, alice, short hair, blue eyes, wearing a {color:yellow sun} dress
+```
+
+Then I could write out a tree of scenarios like this:
+
+```
+standing, posing, full body view.
+in an alley
+# holding a {item:umbrella}
+## {item=} looking at the sky
+in a bedroom
+# lying on the bed
+## reading a book --rotate true
+## sleeping
+```
+
+## Regressing Over Options
+
+Rather than using one of the other scripts for trying prompts, I can get a lot
+more control by using broadcasting and variable substitution.
+
+Say I want to try a variety of colored outfits and different hairstyles for a
+character. I could set the base prompt to:
+
+```
+1girl, alice, {hair:short hair}, {outfit:casual clothes}
+```
+
+Then I could write out a tree of options like this:
+
+```
+{outfit:casual clothes} | {outfit:formal dress} | {outfit:swimsuit}
+# {hair:short hair} | {hair:long hair} | {hair=}
+```
+
+And get the power set of those options.
