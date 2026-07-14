@@ -121,6 +121,13 @@ posing." could be overridden in a child node as "{hair=} closeup of torso" to
 remove the reference to their hair and thus avoid forcing the model to include
 their head.
 
+### Variable Nesting
+
+Variables can be nested, e.g. `{hair: {color: green} hair brooch}` will set `color` to 'green' and `hair` to 'green hair brooch'. Since these use the `:` operator, they'll be inserted
+in place in the text, e.g. 'green hair brooch' will appear there in your prompt.
+
+If you instead use the `=` operator, e.g. `{hair= {color: green} hair brooch }`, then `hair` will be set to 'green hair brooch' but nothing will be inserted into the prompt at that position.
+
 ## Broadcasting
 
 A line with a pipe (|) in it will be split on the pipe into separate parts.
