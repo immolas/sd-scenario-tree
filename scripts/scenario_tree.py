@@ -218,7 +218,7 @@ def text_to_tree(text, nest_delim="#", cancel_delim="x", verbose=True):
             continue
 
         # split the line into prefixes and text
-        matcher = r"([" + cancel_delim + "])?([" + nest_delim + r"]* )?(.*)"
+        matcher = r"([" + cancel_delim + "])?([" + nest_delim + r"]*)?(.*)"
         m = re.match(matcher, line.strip())
         canceller, pre, text = m.groups()
 
