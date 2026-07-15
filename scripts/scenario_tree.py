@@ -759,6 +759,12 @@ class Script(scripts.Script):
                 else:
                     copy_p.negative_prompt = p.negative_prompt + " " + args.get("negative_prompt")
 
+                # TODO: consider if we should do var replacement in the
+                #  negative prompt as well. IMHO it's of limited utility and
+                #  difficult to do since we'd need to separate vars in the
+                #  negative prompt somehow, but maybe we should implement it for
+                #  consistency's sake.
+
             # allow a special symbol to disable the root prompt
             if args.get("prompt", "").startswith("?"):
                 copy_p.prompt = args.get("prompt")[1:]
