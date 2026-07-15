@@ -126,7 +126,7 @@ their head.
 Variables can be nested, e.g. `{hair: {color: green} hair brooch}` will set `color` to 'green' and `hair` to 'green hair brooch'. Since these use the `:` operator, they'll be inserted
 in place in the text, e.g. 'green hair brooch' will appear there in your prompt.
 
-If you instead use the `=` operator, e.g. `{hair= {color: green} hair brooch }`, then `hair` will be set to 'green hair brooch' but nothing will be inserted into the prompt at that position.
+If you instead use the `=` operator, e.g. `{hair={color: green} hair brooch }`, then `hair` will be set to 'green hair brooch' but nothing will be inserted into the prompt at that position.
 
 ## Broadcasting
 
@@ -238,3 +238,9 @@ Then I could write out a tree of options like this:
 ```
 
 And get the power set of those options.
+
+# Known Issues
+
+Currently, replacing a nested variable in the base prompt, e.g. `{hair: {color: green} hair brooch}` with a child node that sets `color` to `{color=blue}` will not
+replace the reference to `color` in the base prompt, so the resulting prompt will
+be `1girl, green hair brooch` instead of `1girl, blue hair brooch`.
