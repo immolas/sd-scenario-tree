@@ -175,7 +175,8 @@ def replace_vars(text, vars_dict=None, force_retrieve=False):
             candidate_value = "".join(str(x) for x in visited_children)
             # always retrieve from vars dict first, then resort to setting to the given value
             value = vars_dict.get(var_name, candidate_value)
-            print(f"Setting variable '{var_name}' to '{value}'; {visited_children}")
+            print(f"Setting variable '{var_name}' to '{value}' (children: {visited_children})")
+            print(f"Current vars dict: {vars_dict}")
             if force_retrieve or var_name not in vars_dict:
                 vars_dict[var_name] = value
             return value
@@ -226,10 +227,10 @@ def text_to_tree(text, nest_delim="#", cancel_delim="x", verbose=True):
             print(f"Matcher: {matcher}")
             print(f"Processing line: '{line}'")
             print(f"  Prefix: '{pre}', Text: '{text}'")
-            print(f"  Last level: {last_level}")
+            print(f"  Last level: {last_level}", flush=True)
 
         # determine the depth of indentation
-        level = len(pre) - 1 if pre is not None else 0
+        level = len(pre) if pre is not None else 0
 
         # the new node for this line; we need to figure out if it's:
         # - at the same level (last_level == level): append to curnode children
@@ -315,8 +316,8 @@ def collect_lines(cur, path=[], results=None, vars_dict=None, join_str=" , ", ev
             for part in parts:
                 # remove the pipe from the text, but keep the rest of the line intact
                 part = part.strip("|").strip()
-                # parse variables in the string into the vars dict, but don't retain var resolution in the text
-                _, new_vars_dict = replace_vars(part, vars_dict=deepcopy(vars_dict))
+                # parse variables in the string into the vars dict, without retaining var resolution in the text
+                _, new_vars_dict = replace_vars(part, vars_dict=deepcopy(new_vars_dict), force_retrieve=False)
                 # broadcast the part across each child
                 for child in cur["children"]:
                     # descend into the children
