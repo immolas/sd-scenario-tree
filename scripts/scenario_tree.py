@@ -716,6 +716,11 @@ class Script(scripts.Script):
             job_count += args.get("n_iter", p.n_iter)
 
             jobs.append(args)
+        else:
+            # just add the base prompt as a single job if there are no lines
+            if len(lines_dicts) == 0:
+                job_count = p.n_iter
+                jobs.append({"prompt": p.prompt, "var_dict": vars_dict})
 
         print(f"Will process {len(lines_dicts)} lines in {job_count} jobs.")
         if (checkbox_iterate or checkbox_iterate_batch) and p.seed == -1:
