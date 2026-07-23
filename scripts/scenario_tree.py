@@ -1,4 +1,5 @@
 import copy
+from pprint import pprint
 import random
 import shlex
 import re
@@ -135,11 +136,11 @@ var_grammar = Grammar(
     var_op = "{" var_name ":" full_text "}"
     var_ref = "{" var_name "}"
     var_name = ~"[a-zA-Z_][a-zA-Z0-9_]*"
-    var_text = ~"[^{}]*"
+    var_text = ~"[^{}]+"
     """
 )
 
-def replace_vars(text, vars_dict=None, force_retrieve=False):
+def replace_vars(text, vars_dict=None, force_retrieve=False, verbose=False):
     """
     Look for variable references and operations of the following forms:
     - {var:text}: sets var to text and inserts it into the parent string
@@ -151,11 +152,25 @@ def replace_vars(text, vars_dict=None, force_retrieve=False):
         text: "a green sun dress"
         vars dict: {"color": "green", "clothing": "a green sun dress"}
     Inner variables are replaced with values first.
+
+    Args:
+        text (str): The input text containing variable references and operations.
+        vars_dict (dict, optional): A dictionary to store variable values. Defaults to None.
+        force_retrieve (bool, optional): If True, forces retrieval of variable values even if they are already set. Defaults to False.
+        verbose (bool, optional): If True, prints debug information during processing. Defaults to False.
     """
     if vars_dict is None:
         vars_dict = {}
+    else:
+        vars_dict = deepcopy(vars_dict)
 
     tree = var_grammar.parse(text)
+
+    if verbose:
+        print(f"Parsed tree for text: '{text}'")
+        print(f" - Variables dict before processing:")
+        pprint(vars_dict)
+        print(flush=True)
 
     class VarVisitor(NodeVisitor):
         def visit_var_set(self, node, visited_children):
@@ -205,7 +220,7 @@ def replace_vars(text, vars_dict=None, force_retrieve=False):
     if isinstance(result, str):
         result = result.strip()
 
-    return result, vars_dict
+    return result, deepcopy(vars_dict)
 
 def text_to_tree(text, nest_delim="#", cancel_delim="x", verbose=True):
     # record state for building the tree
@@ -289,7 +304,7 @@ def collect_lines(cur, path=[], results=None, vars_dict=None, join_str=" , ", ev
     if cur["enabled"] and "children" in cur and len(cur["children"]) > 0:
         if every_line_generates:
             # force all non-leaf nodes to be treated as leaves
-            full_text, new_vars_dict = replace_vars(cur['text'], vars_dict=deepcopy(vars_dict))
+            full_text, new_vars_dict = replace_vars(cur['text'], vars_dict=vars_dict)
             sofar = [x.strip() for x in path + [full_text] if x.strip() != '']
             # ensure only non-empty lines are added
             if join_str.join(sofar).strip() != "":
@@ -302,13 +317,13 @@ def collect_lines(cur, path=[], results=None, vars_dict=None, join_str=" , ", ev
             cur['text'] = newtext # and remove the '!' from the text
             print(f"Found a prompt with a shebang: {newtext}")
             # do full var replacement, since this is a leaf
-            full_text, new_vars_dict = replace_vars(newtext, vars_dict=deepcopy(vars_dict))
+            full_text, new_vars_dict = replace_vars(newtext, vars_dict=vars_dict)
             sofar = [x.strip() for x in path + [newtext] if x.strip() != '']
             results.append((join_str.join(sofar), new_vars_dict))
 
         # parse variables in the string into the vars dict, but don't retain var resolution in the text
         # (basically, this causes variable sets and refs to remain in the text)
-        _, new_vars_dict = replace_vars(cur['text'], vars_dict=deepcopy(vars_dict))
+        _, new_vars_dict = replace_vars(cur['text'], vars_dict=vars_dict)
 
         if "|" in cur["text"]:
             # split on pipes, replicate each assignment over the children
@@ -317,7 +332,7 @@ def collect_lines(cur, path=[], results=None, vars_dict=None, join_str=" , ", ev
                 # remove the pipe from the text, but keep the rest of the line intact
                 part = part.strip("|").strip()
                 # parse variables in the string into the vars dict, without retaining var resolution in the text
-                _, new_vars_dict = replace_vars(part, vars_dict=deepcopy(new_vars_dict), force_retrieve=False)
+                _, new_vars_dict = replace_vars(part, vars_dict=new_vars_dict)
                 # broadcast the part across each child
                 for child in cur["children"]:
                     # descend into the children
@@ -329,7 +344,7 @@ def collect_lines(cur, path=[], results=None, vars_dict=None, join_str=" , ", ev
     else:
         if cur["enabled"]:
             # do full var replacement, since this is a leaf
-            full_text, new_vars_dict = replace_vars(cur['text'], vars_dict=deepcopy(vars_dict))
+            full_text, new_vars_dict = replace_vars(cur['text'], vars_dict=vars_dict)
 
             # it's a leaf, add it to the results
             sofar = [x.strip() for x in path + [full_text] if x.strip() != '']
@@ -754,7 +769,7 @@ class Script(scripts.Script):
                 # use this line's resolved variables to peform a replacement
                 # on the entire string, including the base prompt. this allows
                 # us to replace variables that were initially assigned in the base.
-                resolved_prompt, _ = replace_vars(result, vars_dict=deepcopy(args.get("var_dict", {})), force_retrieve=True)
+                resolved_prompt, _ = replace_vars(result, vars_dict=args.get("var_dict", {}), force_retrieve=True)
 
                 copy_p.prompt = resolved_prompt
 
