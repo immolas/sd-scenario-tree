@@ -805,15 +805,17 @@ class Script(scripts.Script):
 
             # parse cmdargs, add to copy_p
             args, rest = cmdargs(copy_p.prompt)
+
+            # if rotate, swap width and height
+            if args.get("rotate", False):
+                args["width"], args["height"] = args.get("height", p.height), args.get("width", p.width)
+
+            # persist args into copy_p
             for k, v in args.items():
                 if k == "sd_model":
                     copy_p.override_settings['sd_model_checkpoint'] = v
                 else:
                     setattr(copy_p, k, v)
-
-            # if p.rotate, swap width and height
-            if args.get("rotate", False):
-                args["width"], args["height"] = args.get("height", p.height), args.get("width", p.width)
 
             # resolve prompt variables
             resolved_prompt, _ = replace_vars(rest, vars_dict={}, force_retrieve=True)
