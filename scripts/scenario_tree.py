@@ -731,11 +731,6 @@ class Script(scripts.Script):
             job_count += args.get("n_iter", p.n_iter)
 
             jobs.append(args)
-        else:
-            # just add the base prompt as a single job if there are no lines
-            if len(lines_dicts) == 0:
-                job_count = p.n_iter
-                jobs.append({"prompt": p.prompt, "var_dict": vars_dict})
 
         print(f"Will process {len(lines_dicts)} lines in {job_count} jobs.")
         if (checkbox_iterate or checkbox_iterate_batch) and p.seed == -1:
@@ -747,6 +742,11 @@ class Script(scripts.Script):
         all_prompts = []
         infotexts = []
         for args in jobs:
+            # if the prompt is empty, ignore it
+            if not args.get("prompt", "").strip():
+                print(f"Skipping empty prompt line: {args}")
+                continue
+
             state.job = f"{state.job_no + 1} out of {state.job_count}"
 
             # if p.rotate, swap width and height
@@ -798,6 +798,33 @@ class Script(scripts.Script):
             all_prompts += proc.all_prompts
             infotexts += proc.infotexts
             # infotexts += updated_infotexts
+        else:
+            # just use the base prompt and neg prompt if no lines were generated
+            state.job = f"{state.job_no + 1} out of {state.job_count}"
+            copy_p = copy.copy(p)
+
+            # parse cmdargs, add to copy_p
+            args, rest = cmdargs(copy_p.prompt)
+            for k, v in args.items():
+                if k == "sd_model":
+                    copy_p.override_settings['sd_model_checkpoint'] = v
+                else:
+                    setattr(copy_p, k, v)
+
+            # if p.rotate, swap width and height
+            if args.get("rotate", False):
+                args["width"], args["height"] = args.get("height", p.height), args.get("width", p.width)
+
+            # resolve prompt variables
+            resolved_prompt, _ = replace_vars(rest, vars_dict={}, force_retrieve=True)
+            copy_p.prompt = resolved_prompt
+
+            proc = process_images(copy_p)
+
+            images += proc.images
+            all_prompts += proc.all_prompts
+            infotexts += proc.infotexts
+
 
         if make_combined and len(images) > 1:
             combined_image = image_grid(images, batch_size=1, rows=None).convert("RGB")
