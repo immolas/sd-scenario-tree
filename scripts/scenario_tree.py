@@ -741,64 +741,67 @@ class Script(scripts.Script):
         images = []
         all_prompts = []
         infotexts = []
-        for args in jobs:
-            # if the prompt is empty, ignore it
-            if not args.get("prompt", "").strip():
-                print(f"Skipping empty prompt line: {args}")
-                continue
 
-            state.job = f"{state.job_no + 1} out of {state.job_count}"
+        if len(jobs) > 0:
+            for args in jobs:
+                # if the prompt is empty, ignore it
+                if not args.get("prompt", "").strip():
+                    print(f"Skipping empty prompt line: {args}")
+                    continue
 
-            # if p.rotate, swap width and height
-            if args.get("rotate", False):
-                args["width"], args["height"] = args.get("height", p.height), args.get("width", p.width)
+                state.job = f"{state.job_no + 1} out of {state.job_count}"
 
-            copy_p = copy.copy(p)
-            for k, v in args.items():
-                if k == "sd_model":
-                    copy_p.override_settings['sd_model_checkpoint'] = v
-                else:
-                    setattr(copy_p, k, v)
+                # if p.rotate, swap width and height
+                if args.get("rotate", False):
+                    args["width"], args["height"] = args.get("height", p.height), args.get("width", p.width)
 
-            if args.get("prompt") and p.prompt:
-                if prompt_position == "start":
-                    result = args.get("prompt") + " " + p.prompt
-                else:
-                    result = p.prompt + " " + args.get("prompt")
+                copy_p = copy.copy(p)
+                for k, v in args.items():
+                    if k == "sd_model":
+                        copy_p.override_settings['sd_model_checkpoint'] = v
+                    else:
+                        setattr(copy_p, k, v)
 
-                # use this line's resolved variables to peform a replacement
-                # on the entire string, including the base prompt. this allows
-                # us to replace variables that were initially assigned in the base.
-                resolved_prompt, _ = replace_vars(result, vars_dict=args.get("var_dict", {}), force_retrieve=True)
+                if args.get("prompt") and p.prompt:
+                    if prompt_position == "start":
+                        result = args.get("prompt") + " " + p.prompt
+                    else:
+                        result = p.prompt + " " + args.get("prompt")
 
-                copy_p.prompt = resolved_prompt
+                    # use this line's resolved variables to peform a replacement
+                    # on the entire string, including the base prompt. this allows
+                    # us to replace variables that were initially assigned in the base.
+                    resolved_prompt, _ = replace_vars(result, vars_dict=args.get("var_dict", {}), force_retrieve=True)
 
-            if args.get("negative_prompt") and p.negative_prompt:
-                if prompt_position == "start":
-                    copy_p.negative_prompt = args.get("negative_prompt") + " " + p.negative_prompt
-                else:
-                    copy_p.negative_prompt = p.negative_prompt + " " + args.get("negative_prompt")
+                    copy_p.prompt = resolved_prompt
 
-                # TODO: consider if we should do var replacement in the
-                #  negative prompt as well. IMHO it's of limited utility and
-                #  difficult to do since we'd need to separate vars in the
-                #  negative prompt somehow, but maybe we should implement it for
-                #  consistency's sake.
+                if args.get("negative_prompt") and p.negative_prompt:
+                    if prompt_position == "start":
+                        copy_p.negative_prompt = args.get("negative_prompt") + " " + p.negative_prompt
+                    else:
+                        copy_p.negative_prompt = p.negative_prompt + " " + args.get("negative_prompt")
 
-            # allow a special symbol to disable the root prompt
-            if args.get("prompt", "").startswith("?"):
-                copy_p.prompt = args.get("prompt")[1:]
+                    # TODO: consider if we should do var replacement in the
+                    #  negative prompt as well. IMHO it's of limited utility and
+                    #  difficult to do since we'd need to separate vars in the
+                    #  negative prompt somehow, but maybe we should implement it for
+                    #  consistency's sake.
 
-            proc = process_images(copy_p)
+                # allow a special symbol to disable the root prompt
+                if args.get("prompt", "").startswith("?"):
+                    copy_p.prompt = args.get("prompt")[1:]
 
-            images += proc.images
+                proc = process_images(copy_p)
 
-            if checkbox_iterate:
-                p.seed = p.seed + (p.batch_size * p.n_iter)
-            all_prompts += proc.all_prompts
-            infotexts += proc.infotexts
-            # infotexts += updated_infotexts
+                images += proc.images
+
+                if checkbox_iterate:
+                    p.seed = p.seed + (p.batch_size * p.n_iter)
+                all_prompts += proc.all_prompts
+                infotexts += proc.infotexts
+                # infotexts += updated_infotexts
         else:
+            # they submitted no jobs
             # just use the base prompt and neg prompt if no lines were generated
             state.job = f"{state.job_no + 1} out of {state.job_count}"
             copy_p = copy.copy(p)
