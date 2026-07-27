@@ -725,11 +725,15 @@ class Script(scripts.Script):
             else:
                 args = {"prompt": line}
 
+            # if there's no prompt for this line, skip this job
+            if not args.get("prompt", "").strip() and not args.get("negative_prompt", "").strip():
+                print(f"Skipping empty prompt line: {args}")
+                continue
+
             # add in the line's variables for use later
             args["var_dict"] = var_dict
 
             job_count += args.get("n_iter", p.n_iter)
-
             jobs.append(args)
 
         print(f"Will process {len(lines_dicts)} lines in {job_count} jobs.")
@@ -744,11 +748,6 @@ class Script(scripts.Script):
 
         if len(jobs) > 0:
             for args in jobs:
-                # if the prompt is empty, ignore it
-                if not args.get("prompt", "").strip():
-                    print(f"Skipping empty prompt line: {args}")
-                    continue
-
                 state.job = f"{state.job_no + 1} out of {state.job_count}"
 
                 # if p.rotate, swap width and height
@@ -799,7 +798,6 @@ class Script(scripts.Script):
                     p.seed = p.seed + (p.batch_size * p.n_iter)
                 all_prompts += proc.all_prompts
                 infotexts += proc.infotexts
-                # infotexts += updated_infotexts
         else:
             # they submitted no jobs
             # just use the base prompt and neg prompt if no lines were generated
@@ -823,6 +821,8 @@ class Script(scripts.Script):
             # resolve prompt variables
             resolved_prompt, _ = replace_vars(rest, vars_dict={}, force_retrieve=True)
             copy_p.prompt = resolved_prompt
+
+            print(f"Processing base prompt with no lines: {copy_p.prompt}", flush=True)
 
             proc = process_images(copy_p)
 
